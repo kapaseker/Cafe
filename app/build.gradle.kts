@@ -1,5 +1,12 @@
+import com.squareup.kotlinpoet.AnnotationSpec
+import com.squareup.kotlinpoet.ClassName
+import com.squareup.kotlinpoet.FileSpec
+import com.squareup.kotlinpoet.KModifier
+import com.squareup.kotlinpoet.PropertySpec
+import com.squareup.kotlinpoet.TypeSpec
 import groovy.util.Node
 import groovy.xml.XmlParser
+import org.gradle.configurationcache.extensions.capitalized
 import org.jetbrains.kotlin.incremental.createDirectory
 
 @Suppress("DSL_SCOPE_VIOLATION") // TODO: Remove once KTIJ-19369 is fixed
@@ -97,9 +104,13 @@ class CafePlugin : Plugin<Project> {
     override fun apply(target: Project) {
         println("Cafe...")
         println(target.android.sourceSets["main"].java.srcDirs.first().absolutePath)
-        val skinFile = File(target.android.sourceSets["main"].java.srcDirs.first(),"com/azalea/cafe/Cafe.kt")
-        skinFile.createDirectory()
-        skinFile.createNewFile()
+        val skinFile = target.android.sourceSets["main"].java.srcDirs.first()
+
+        val cafe = FileSpec.builder(ClassName("com.azalea.cafe","Cafe"))
+        val cafeObj = TypeSpec.objectBuilder("Cafe")
+
+        val resMap = mutableMapOf<String,TypeSpec.Builder>()
+
         for (resFile in target.android.sourceSets["main"].res.srcDirs) {
             val files = resFile.listFiles()
             for (file in files) {
@@ -111,6 +122,20 @@ class CafePlugin : Plugin<Project> {
                         val values = XmlParser().parse(valueFile)
 //                        println(values.children())
                         for (child in values.children()) {
+                            (child as Node).let { node ->
+                                val resName = node.name().toString()
+                                val resSpec = resMap.getOrPut(resName) {
+                                    TypeSpec.objectBuilder(resName)
+                                }
+
+                                val annotationName = resName.capitalized()
+                                val resValue = node.attribute("name").toString().replace('.','_')
+                                resSpec.addProperty(PropertySpec.builder(resValue, Int::class)
+                                    .addModifiers(KModifier.PUBLIC)
+                                    .addAnnotation(AnnotationSpec.builder(ClassName("androidx.annotation","${annotationName}Res")).build())
+                                    .initializer("com.azalea.cafe.R." + resName + "." + resValue)
+                                    .build())
+                            }
                             println((child as Node).name())
                             println((child).attribute("name"))
                             println((child).value())
@@ -119,6 +144,12 @@ class CafePlugin : Plugin<Project> {
                 }
             }
         }
+        for (resType in resMap.values) {
+            cafeObj.addType(resType.build())
+        }
+        cafe.addType(cafeObj.build())
+        println(cafe.toString())
+        cafe.build().writeTo(skinFile)
         println("Cafe!!!")
     }
 }
