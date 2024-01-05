@@ -103,42 +103,91 @@ dependencies {
 class CafePlugin : Plugin<Project> {
     override fun apply(target: Project) {
         println("Cafe...")
+        println(target.android.namespace)
         println(target.android.sourceSets["main"].java.srcDirs.first().absolutePath)
+
+        val nameSpace = target.android.namespace.orEmpty()
+
         val skinFile = target.android.sourceSets["main"].java.srcDirs.first()
 
         val cafe = FileSpec.builder(ClassName("com.azalea.cafe","Cafe"))
         val cafeObj = TypeSpec.objectBuilder("Cafe")
 
         val resMap = mutableMapOf<String,TypeSpec.Builder>()
+        val mipmapMap = mutableSetOf<String>()
+        val drawableMap = mutableSetOf<String>()
 
         for (resFile in target.android.sourceSets["main"].res.srcDirs) {
-            val files = resFile.listFiles()
-            for (file in files) {
+            val files = resFile.listFiles().orEmpty()
+            for (folder in files) {
 //                println(file.name)
-                if (file.name.startsWith("values")) {
-                    val valueFiles = file.listFiles()
-                    for (valueFile in valueFiles) {
-                        println(valueFile.name)
-                        val values = XmlParser().parse(valueFile)
+                when {
+                    folder.name.startsWith("values") -> {
+                        // values folder
+                        val valueFiles = folder.listFiles().orEmpty()
+                        for (valueFile in valueFiles) {
+                            println(valueFile.name)
+                            val values = XmlParser().parse(valueFile)
 //                        println(values.children())
-                        for (child in values.children()) {
-                            (child as Node).let { node ->
-                                val resName = node.name().toString()
-                                val resSpec = resMap.getOrPut(resName) {
-                                    TypeSpec.objectBuilder(resName)
-                                }
+                            for (child in values.children()) {
+                                (child as Node).let { node ->
+                                    val resName = node.name().toString()
+                                    val resSpec = resMap.getOrPut(resName) {
+                                        TypeSpec.objectBuilder(resName)
+                                    }
 
-                                val annotationName = resName.capitalized()
-                                val resValue = node.attribute("name").toString().replace('.','_')
-                                resSpec.addProperty(PropertySpec.builder(resValue, Int::class)
-                                    .addModifiers(KModifier.PUBLIC)
-                                    .addAnnotation(AnnotationSpec.builder(ClassName("androidx.annotation","${annotationName}Res")).build())
-                                    .initializer("com.azalea.cafe.R." + resName + "." + resValue)
-                                    .build())
+                                    val annotationName = resName.capitalized()
+                                    val resValue = node.attribute("name").toString().replace('.', '_')
+                                    resSpec.addProperty(
+                                        PropertySpec.builder(resValue, Int::class).addModifiers(KModifier.PUBLIC)
+                                            .addAnnotation(AnnotationSpec.builder(ClassName("androidx.annotation", "${annotationName}Res")).build())
+                                            .initializer("${nameSpace}.R." + resName + "." + resValue).build()
+                                    )
+                                }
+//                                println((child as Node).name())
+//                                println((child).attribute("name"))
+//                                println((child).value())
                             }
-                            println((child as Node).name())
-                            println((child).attribute("name"))
-                            println((child).value())
+                        }
+                    }
+
+                    folder.name.startsWith("mipmap") -> {
+                        val resName = "mipmap"
+                        val resSpec = resMap.getOrPut(resName) {
+                            TypeSpec.objectBuilder(resName)
+                        }
+                        for (valueFile in folder.listFiles().orEmpty()) {
+                            val annotationName = "Drawable"
+                            val resValue = valueFile.name.substring(0, valueFile.name.indexOf('.'))
+                            if (mipmapMap.contains(resValue)) {
+                                continue
+                            }
+                            mipmapMap.add(resValue)
+                            resSpec.addProperty(
+                                PropertySpec.builder(resValue, Int::class).addModifiers(KModifier.PUBLIC)
+                                    .addAnnotation(AnnotationSpec.builder(ClassName("androidx.annotation", "${annotationName}Res")).build()).initializer("${nameSpace}.R." + resName + "." + resValue)
+                                    .build()
+                            )
+                        }
+                    }
+
+                    folder.name.startsWith("drawable") -> {
+                        val resName = "drawable"
+                        val resSpec = resMap.getOrPut(resName) {
+                            TypeSpec.objectBuilder(resName)
+                        }
+                        for (valueFile in folder.listFiles().orEmpty()) {
+                            val annotationName = "Drawable"
+                            val resValue = valueFile.name.substring(0, valueFile.name.indexOf('.'))
+                            if (drawableMap.contains(resValue)) {
+                                continue
+                            }
+                            drawableMap.add(resValue)
+                            resSpec.addProperty(
+                                PropertySpec.builder(resValue, Int::class).addModifiers(KModifier.PUBLIC)
+                                    .addAnnotation(AnnotationSpec.builder(ClassName("androidx.annotation", "${annotationName}Res")).build()).initializer("${nameSpace}.R." + resName + "." + resValue)
+                                    .build()
+                            )
                         }
                     }
                 }

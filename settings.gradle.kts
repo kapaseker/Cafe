@@ -26,4 +26,4 @@ buildscript {
 
 rootProject.name = "Cafe"
 include(":app")
- 
+include(":cafe")
