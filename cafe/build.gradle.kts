@@ -1,10 +1,10 @@
 @Suppress("DSL_SCOPE_VIOLATION") // TODO: Remove once KTIJ-19369 is fixed
 plugins {
     `java-gradle-plugin`
-    `kotlin-dsl`
+    id("org.gradle.kotlin.kotlin-dsl")
     kotlin("jvm")
 }
-group = "com.azalea.cafe"
+group = "cn.loopon.cafe"
 version = "1.0.0"
 
 //repositories {
@@ -15,8 +15,18 @@ version = "1.0.0"
 dependencies {
     implementation(kotlin("stdlib"))
     implementation(libs.gradle)
+    implementation(libs.poet)
 }
 
+
+gradlePlugin {
+    plugins {
+        create("Cafe") {
+            id = "cn.loopon.cafe"
+            implementationClass = "cn.loopon.cafe.CafePlugin"
+        }
+    }
+}
 //android {
 //    namespace = "com.azalea.cafe"
 //    compileSdk = 34
