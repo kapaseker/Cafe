@@ -1,20 +1,21 @@
 @Suppress("DSL_SCOPE_VIOLATION") // TODO: Remove once KTIJ-19369 is fixed
 plugins {
     `java-gradle-plugin`
-    id("org.gradle.kotlin.kotlin-dsl")
     kotlin("jvm")
+    id("maven-publish")
 }
-group = "cn.loopon.cafe"
-version = "1.0.0"
 
-//repositories {
-//    mavenCentral()
-//    google()
-//}
+val cafe_id = "cn.loopon.cafe"
+val cafe_group = "cn.loopon"
+val cafe_artifact = "cafe"
+val cafe_version = "1.0.2"
+
+group = "cn.loopon.cafe"
+version = cafe_version
 
 dependencies {
-    implementation(kotlin("stdlib"))
-    implementation(libs.gradle)
+//    implementation(kotlin("stdlib"))
+    compileOnly(libs.gradle)
     implementation(libs.poet)
 }
 
@@ -22,43 +23,30 @@ dependencies {
 gradlePlugin {
     plugins {
         create("Cafe") {
-            id = "cn.loopon.cafe"
+            id = cafe_id
             implementationClass = "cn.loopon.cafe.CafePlugin"
         }
     }
 }
-//android {
-//    namespace = "com.azalea.cafe"
-//    compileSdk = 34
-//
-//    defaultConfig {
-//        minSdk = 24
-//
-//        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-//        consumerProguardFiles("consumer-rules.pro")
-//    }
-//
-//    buildTypes {
-//        release {
-//            isMinifyEnabled = false
-//            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
-//        }
-//    }
-//    compileOptions {
-//        sourceCompatibility = JavaVersion.VERSION_1_8
-//        targetCompatibility = JavaVersion.VERSION_1_8
-//    }
-//    kotlinOptions {
-//        jvmTarget = "1.8"
-//    }
-//}
-//
-//dependencies {
-//
-//    implementation(libs.core.ktx)
-//    implementation(libs.appcompat)
-//    implementation(libs.material)
-//    testImplementation(libs.junit)
-//    androidTestImplementation(libs.androidx.test.ext.junit)
-//    androidTestImplementation(libs.espresso.core)
-//}
+
+publishing {
+    publications {
+        create<MavenPublication>("maven") {
+            groupId = cafe_group
+            artifactId = cafe_artifact
+            version = cafe_version
+
+            from(components["java"])
+        }
+    }
+    repositories {
+        maven {
+            credentials {
+                username = "deployment"
+                password = "deployment123"
+            }
+            isAllowInsecureProtocol = true
+            url = uri("http://192.168.6.18:8081/repository/releases/")
+        }
+    }
+}

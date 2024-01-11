@@ -3,6 +3,10 @@ pluginManagement {
         google()
         mavenCentral()
         gradlePluginPortal()
+        maven {
+            isAllowInsecureProtocol = true
+            url = uri("http://192.168.6.18:8081/repository/public/")
+        }
     }
 }
 dependencyResolutionManagement {
@@ -18,12 +22,14 @@ buildscript {
         google()
         mavenCentral()
         gradlePluginPortal()
+        maven {
+            isAllowInsecureProtocol = true
+            url = uri("http://192.168.6.18:8081/repository/public/")
+        }
     }
     dependencies {
-        classpath(files("./cafe/build/libs/cafe-1.0.0.jar"))
         classpath("com.android.tools.build:gradle:8.2.1")
-        classpath("com.squareup:kotlinpoet:1.15.3")
-        classpath("org.gradle.kotlin:gradle-kotlin-dsl-plugins:4.0.14")
+        classpath("cn.loopon:cafe:1.0.1")
         classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:1.9.21")
     }
 }
