@@ -29,7 +29,7 @@ buildscript {
     }
     dependencies {
         classpath("com.android.tools.build:gradle:8.2.1")
-        classpath("cn.loopon:cafe:1.0.1")
+        classpath("cn.loopon:cafe:1.0.3")
         classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:1.9.21")
     }
 }

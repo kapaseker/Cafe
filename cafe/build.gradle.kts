@@ -8,7 +8,7 @@ plugins {
 val cafe_id = "cn.loopon.cafe"
 val cafe_group = "cn.loopon"
 val cafe_artifact = "cafe"
-val cafe_version = "1.0.2"
+val cafe_version = "1.0.3"
 
 group = "cn.loopon.cafe"
 version = cafe_version

@@ -166,7 +166,7 @@ class CafePlugin : Plugin<Project> {
         }
 
         for (resource in cafeResources) {
-            makeResourceCoffee(resource.name, resource.annotation, resource.resMap, coffeeList)
+            makeResourceCoffee(cupName = resource.name, annotation = resource.annotation, namespace = namespace, cupMap = resource.resMap, cupList = coffeeList)
             makeResourceCup(
                 resName = resource.name, namespace = namespace, resMap = resource.resMap, typeList = cupMap, coffee = cups
             )
@@ -296,16 +296,22 @@ class CafePlugin : Plugin<Project> {
     private fun makeResourceCoffee(
         cupName: String,
         annotation: ClassName,
+        namespace: String,
         cupMap: Map<String, MutableList<String>>,
         cupList: MutableList<TypeSpec.Builder>,
     ) {
-        val cupType = TypeSpec.classBuilder(CAFE + cupName.capitalized()).addModifiers(KModifier.DATA, KModifier.PUBLIC)
-        val constructor = FunSpec.constructorBuilder()
+        val cupType = TypeSpec.classBuilder(CAFE + cupName.capitalized()).addModifiers(KModifier.PUBLIC)
         for (res in cupMap[MAIN_COFFEE].orEmpty()) {
-            constructor.addParameter(res, Int::class)
-            cupType.addProperty(PropertySpec.builder(res, Int::class).addAnnotation(annotation).initializer(res).build())
+            cupType
+                .addProperty(
+                    PropertySpec
+                        .builder(res, Int::class, KModifier.PUBLIC)
+                        .mutable()
+                        .addAnnotation(annotation)
+                        .initializer("${namespace}.R.${cupName}.%L", res)
+                        .build()
+                )
         }
-        cupType.primaryConstructor(constructor.build())
         cupList.add(cupType)
     }
 
@@ -339,7 +345,14 @@ class CafePlugin : Plugin<Project> {
                 val property = PropertySpec.builder(
                     resName, ClassName(CAFE_PACKAGE, CAFE + resName.capitalized()), KModifier.PUBLIC, KModifier.OVERRIDE
                 ).initializer(
-                        CodeBlock.builder().addStatement("%L(\n%L\n)", CAFE + resName.capitalized(), properties.joinToString(",\n") { "${it.first} = ${it.second}" }).build()
+                        CodeBlock
+                            .builder()
+                            .addStatement(
+                                "%L().apply{\n%L\n}",
+                                CAFE + resName.capitalized(),
+                                properties.joinToString("\n") { "${it.first} = ${it.second}" }
+                            )
+                            .build()
                     )
                 type.addProperty(property.build())
             }
