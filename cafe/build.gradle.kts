@@ -3,6 +3,7 @@ plugins {
     `java-gradle-plugin`
     kotlin("jvm")
     id("maven-publish")
+    id("com.gradle.plugin-publish") version "1.2.1"
 }
 
 val cafe_id = "cn.loopon.cafe"
@@ -21,9 +22,14 @@ dependencies {
 
 
 gradlePlugin {
+    website = "https://github.com/kapaseker/Cafe"
+    vcsUrl  = "https://github.com/kapaseker/Cafe.git"
     plugins {
         create("Cafe") {
             id = cafe_id
+            displayName = "Plugin for android theme changing"
+            description = "A plugin that helps you change theme in android app developed by compose"
+            tags = listOf("theme")
             implementationClass = "cn.loopon.cafe.CafePlugin"
         }
     }
