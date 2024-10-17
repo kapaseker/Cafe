@@ -6,12 +6,12 @@ plugins {
     id("com.gradle.plugin-publish") version "1.2.1"
 }
 
-val cafe_id = "cn.loopon.cafe"
-val cafe_group = "cn.loopon"
+val cafe_id = "com.github.kapaseker.cafe"
+val cafe_group = "com.github.kapaseker"
 val cafe_artifact = "cafe"
 val cafe_version = "1.0.3"
 
-group = "cn.loopon.cafe"
+group = cafe_id
 version = cafe_version
 
 dependencies {
@@ -29,7 +29,7 @@ gradlePlugin {
             id = cafe_id
             displayName = "Plugin for android theme changing"
             description = "A plugin that helps you change theme in android app developed by compose"
-            tags = listOf("theme")
+            tags = listOf("theme","compose","android")
             implementationClass = "cn.loopon.cafe.CafePlugin"
         }
     }
