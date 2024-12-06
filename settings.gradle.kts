@@ -37,10 +37,3 @@ buildscript {
 rootProject.name = "Cafe"
 include(":app")
 include(":cafe")
-
-//includeBuild("cafe")
-//includeBuild("cafe-plugin")
-
-
-include(":night")
-include(":dusk")

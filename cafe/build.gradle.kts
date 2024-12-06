@@ -3,13 +3,13 @@ plugins {
     `java-gradle-plugin`
     kotlin("jvm")
     id("maven-publish")
-    id("com.gradle.plugin-publish") version "1.2.1"
+    id("com.gradle.plugin-publish") version "1.3.0"
 }
 
-val cafe_id = "com.github.kapaseker.cafe"
-val cafe_group = "com.github.kapaseker"
+val cafe_id = "io.github.kapaseker.cafe"
+val cafe_group = "io.github.kapaseker"
 val cafe_artifact = "cafe"
-val cafe_version = "1.0.3"
+val cafe_version = "1.0.0"
 
 group = cafe_id
 version = cafe_version
@@ -27,7 +27,7 @@ gradlePlugin {
     plugins {
         create("Cafe") {
             id = cafe_id
-            displayName = "Plugin for android theme changing"
+            displayName = "Adroid compose theme plugin"
             description = "A plugin that helps you change theme in android app developed by compose"
             tags = listOf("theme","compose","android")
             implementationClass = "cn.loopon.cafe.CafePlugin"
