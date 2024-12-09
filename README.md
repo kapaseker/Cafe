@@ -1,7 +1,7 @@
 # Cafe
 a plugin for android compose theme changing  
 
-## 1. import cafe plugin
+## 1. import Cafe plugin
 
 ```kotlin
 plugins {
@@ -27,7 +27,7 @@ cafe {
 ## 4. build your project
 **this is important**, because this plugin will auto generate code by building project, you can use gralde task `preBuild` to avoid a whole build.
 
-## 5. use Cafe theme
+## 5. use CafeTheme
 ```kotlin
 setContent {
     CafeTheme { // use this theme, alse can include other themes(like MaterialTheme).
