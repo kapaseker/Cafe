@@ -17,7 +17,7 @@ cafe {
 }
 ```
 
-## 3. define your theme colors (also support drawables)
+## 3. define your theme colors (also support drawables/mipmaps, clone this project to learn more)
 ```xml
     <color name="purple">#FF3700B3</color> <!--common color--> 
     <color name="purple_dusk">#FFFF0088</color> <!--dust color--> 
@@ -51,7 +51,7 @@ Box(modifier = Modifier.background(colorResource(id = Cafe.color.purple)))
 
 Cafe.setCup(DUSK) // change all color to dusk color
 
-Cafe.setCup(MAIN) // change all color to defalut main color
+Cafe.setCup(MAIN) // change all color to default main color
 
 Cafe.setCup(NIGHT) // change all color to night color
 
