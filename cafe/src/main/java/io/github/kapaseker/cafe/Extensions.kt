@@ -1,4 +1,4 @@
-package cn.loopon.cafe
+package io.github.kapaseker.cafe
 
 
 import com.android.build.api.variant.ApplicationAndroidComponentsExtension

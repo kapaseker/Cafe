@@ -1,4 +1,4 @@
-package cn.loopon.cafe
+package io.github.kapaseker.cafe
 
 import com.android.build.gradle.BaseExtension
 import com.squareup.kotlinpoet.AnnotationSpec
@@ -20,7 +20,6 @@ import org.gradle.api.provider.SetProperty
 import org.gradle.configurationcache.extensions.capitalized
 import java.io.File
 
-private const val CAFE_PACKAGE = "cn.loopon.cafe"
 private const val TASK_CAFE = "cafe"
 private const val EXTENSION = "cafe"
 private const val MAIN_COFFEE = "main"
@@ -43,8 +42,6 @@ enum class ResourceReadType {
 }
 
 private val composeAnnotation = ClassName("androidx.compose.runtime", "Composable")
-private val cupClass = ClassName(CAFE_PACKAGE, CUP)
-private val coffeeClass = ClassName(CAFE_PACKAGE, COFFEE)
 
 class CafePlugin : Plugin<Project> {
 
@@ -62,15 +59,11 @@ class CafePlugin : Plugin<Project> {
         CafeResource("drawable", ResourceReadType.FILE, ClassName("androidx.annotation", "DrawableRes")),
     )
 
-    init {
-        println("Cafe init")
-    }
-
     override fun apply(target: Project) {
 
-        println("apply cafe")
+        println("generate cafe")
 
-        val cafeExtension = target.extensions.create(EXTENSION,CafePluginExtension::class.java)
+        val cafeExtension = target.extensions.create(EXTENSION, CafePluginExtension::class.java)
         cafeExtension.cup.convention(emptySet())
 
         target.tasks.register(TASK_CAFE) task@{
@@ -117,7 +110,14 @@ class CafePlugin : Plugin<Project> {
         return res
     }
 
-    private fun generateCafeFile(namespace: String, variant: String, target: BaseExtension, buildDir: File, cups: Set<String>, outDir: File) {
+    private fun generateCafeFile(
+        namespace: String,
+        variant: String,
+        target: BaseExtension,
+        buildDir: File,
+        cups: Set<String>,
+        outDir: File
+    ) {
 
         println("make $cups coffee")
 
@@ -126,7 +126,7 @@ class CafePlugin : Plugin<Project> {
         val coffeeList = mutableListOf<TypeSpec.Builder>()
 
         val cupMap = mutableMapOf<String, TypeSpec.Builder>()
-        cupMap[MAIN_COFFEE] = TypeSpec.objectBuilder(MAIN_COFFEE.uppercase()).addSuperinterface(cupClass)
+        cupMap[MAIN_COFFEE] = TypeSpec.objectBuilder(MAIN_COFFEE.uppercase()).addSuperinterface(cupClass(namespace))
 
 //        val colorMap = mutableMapOf<String, MutableList<String>>()
 //        val colorSet = mutableSetOf<String>()
@@ -138,7 +138,7 @@ class CafePlugin : Plugin<Project> {
 //        val drawableSet = mutableSetOf<String>()
 
         for (obj in cups) {
-            cupMap[obj] = TypeSpec.objectBuilder(obj.uppercase()).addSuperinterface(cupClass)
+            cupMap[obj] = TypeSpec.objectBuilder(obj.uppercase()).addSuperinterface(cupClass(namespace))
             for (resource in cafeResources) {
                 resource.resMap[obj] = mutableListOf()
             }
@@ -174,7 +174,7 @@ class CafePlugin : Plugin<Project> {
 
         val coffees = cafeResources.map { it.name }.toTypedArray()
 
-        val coffeeFile = FileSpec.builder(coffeeClass)
+        val coffeeFile = FileSpec.builder(coffeeClass(namespace))
         coffeeFile.addFileComment(FILE_COMMENT)
 
         for (cup in coffeeList) {
@@ -183,10 +183,10 @@ class CafePlugin : Plugin<Project> {
 
         coffeeFile.build().writeTo(outDir)
 
-        val cupFile = FileSpec.builder(cupClass)
+        val cupFile = FileSpec.builder(cupClass(namespace))
         cupFile.addFileComment(FILE_COMMENT)
 
-        cupFile.addType(makeCupInterface(coffees))
+        cupFile.addType(makeCupInterface(namespace, coffees))
 
         for (obj in cupMap.values) {
             cupFile.addType(obj.build())
@@ -195,7 +195,7 @@ class CafePlugin : Plugin<Project> {
         cupFile.build().writeTo(outDir)
 
 
-        val cafeFile = FileSpec.builder(ClassName(CAFE_PACKAGE, CAFE))
+        val cafeFile = FileSpec.builder(cafeClass(namespace))
         cafeFile.addFileComment(FILE_COMMENT)
 
         val cafeProviderObj = TypeSpec.objectBuilder(CAFE_PROVIDER)
@@ -204,7 +204,7 @@ class CafePlugin : Plugin<Project> {
         for (type in coffees) {
             cafeProviderObj.addProperty(
                 PropertySpec.builder(
-                    name = type + PROVIDER, type = ClassName("androidx.compose.runtime", "ProvidableCompositionLocal").parameterizedBy(ClassName(CAFE_PACKAGE, CAFE + type.capitalized()))
+                    name = type + PROVIDER, type = ClassName("androidx.compose.runtime", "ProvidableCompositionLocal").parameterizedBy(ClassName(namespace, CAFE + type.capitalized()))
                 ).initializer(
                     CodeBlock.builder().addStatement("staticCompositionLocalOf<%L> { error(\"null\") }", CAFE + type.capitalized()).build()
                 ).build()
@@ -213,7 +213,7 @@ class CafePlugin : Plugin<Project> {
 
         cafeProviderObj.addProperty(
             PropertySpec.builder(
-                "cupFlow", ClassName("kotlinx.coroutines.flow", "MutableStateFlow").parameterizedBy(cupClass)
+                "cupFlow", ClassName("kotlinx.coroutines.flow", "MutableStateFlow").parameterizedBy(cupClass(namespace))
             ).initializer(
                     CodeBlock.builder().addStatement("MutableStateFlow(MAIN)").build()
                 ).build()
@@ -224,7 +224,7 @@ class CafePlugin : Plugin<Project> {
 
         for (type in coffees) {
             cafeObj.addProperty(
-                PropertySpec.builder(type, ClassName(CAFE_PACKAGE, CAFE + type.capitalized())).getter(
+                PropertySpec.builder(type, ClassName(namespace, CAFE + type.capitalized())).getter(
                         FunSpec.getterBuilder().addAnnotation(composeAnnotation).addStatement("return $CAFE_PROVIDER.$type$PROVIDER.current").build()
                     ).build()
             )
@@ -232,11 +232,11 @@ class CafePlugin : Plugin<Project> {
 
 
         cafeObj.addFunction(
-            FunSpec.builder("set$CUP").addParameter(CUP.lowercase(), cupClass).addStatement("$CAFE_PROVIDER.${CUP.lowercase()}Flow.tryEmit(${CUP.lowercase()})").build()
+            FunSpec.builder("set$CUP").addParameter(CUP.lowercase(), cupClass(namespace)).addStatement("$CAFE_PROVIDER.${CUP.lowercase()}Flow.tryEmit(${CUP.lowercase()})").build()
         )
 
         cafeObj.addFunction(
-            FunSpec.builder("getCup").returns(cupClass).addStatement("return $CAFE_PROVIDER.cupFlow.value").build()
+            FunSpec.builder("getCup").returns(cupClass(namespace)).addStatement("return $CAFE_PROVIDER.cupFlow.value").build()
         )
 
         val cafeFunc = FunSpec.builder(CAFE_THEME)
@@ -284,11 +284,12 @@ class CafePlugin : Plugin<Project> {
     }
 
     private fun makeCupInterface(
+        namespace: String,
         resNames: Array<String>
     ): TypeSpec {
         val coffeeInterface = TypeSpec.interfaceBuilder(CUP).addModifiers(KModifier.PUBLIC)
         for (res in resNames) {
-            coffeeInterface.addProperty(res, ClassName(CAFE_PACKAGE, CAFE + res.capitalized()))
+            coffeeInterface.addProperty(res, ClassName(namespace, CAFE + res.capitalized()))
         }
         return coffeeInterface.build()
     }
@@ -316,7 +317,11 @@ class CafePlugin : Plugin<Project> {
     }
 
     private fun makeResourceCup(
-        resName: String, namespace: String, resMap: Map<String, MutableList<String>>, typeList: MutableMap<String, TypeSpec.Builder>, coffee: Set<String>
+        resName: String,
+        namespace: String,
+        resMap: Map<String, MutableList<String>>,
+        typeList: MutableMap<String, TypeSpec.Builder>,
+        coffee: Set<String>
     ) {
         //除了主资源以外，其他资源补完
         val mainSet = resMap[MAIN_COFFEE]?.map { makeResKey(it, coffee) }?.toSet().orEmpty()
@@ -343,7 +348,7 @@ class CafePlugin : Plugin<Project> {
                 println("$resName has properties : $properties")
 
                 val property = PropertySpec.builder(
-                    resName, ClassName(CAFE_PACKAGE, CAFE + resName.capitalized()), KModifier.PUBLIC, KModifier.OVERRIDE
+                    resName, ClassName(namespace, CAFE + resName.capitalized()), KModifier.PUBLIC, KModifier.OVERRIDE
                 ).initializer(
                         CodeBlock
                             .builder()
@@ -392,4 +397,8 @@ class CafePlugin : Plugin<Project> {
             }
         }
     }
+
+    private fun cupClass(pkg: String) = ClassName(pkg, CUP)
+    private fun coffeeClass(pkg: String) = ClassName(pkg, COFFEE)
+    private fun cafeClass(pkg:String) = ClassName(pkg, CAFE)
 }

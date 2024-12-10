@@ -3,10 +3,6 @@ pluginManagement {
         google()
         mavenCentral()
         gradlePluginPortal()
-        maven {
-            isAllowInsecureProtocol = true
-            url = uri("http://192.168.6.18:8081/repository/public/")
-        }
     }
 }
 dependencyResolutionManagement {
@@ -22,15 +18,12 @@ buildscript {
         google()
         mavenCentral()
         gradlePluginPortal()
-        maven {
-            isAllowInsecureProtocol = true
-            url = uri("http://192.168.6.18:8081/repository/public/")
-        }
     }
     dependencies {
-        classpath("com.android.tools.build:gradle:8.2.1")
-        classpath("cn.loopon:cafe:1.0.3")
-        classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:1.9.21")
+        classpath("com.android.tools.build:gradle:8.2.2")
+        classpath("io.github.kapaseker.cafe:cafe:1.0.1")
+        classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:2.1.0")
+        classpath("org.jetbrains.kotlin.plugin.compose:org.jetbrains.kotlin.plugin.compose.gradle.plugin:2.1.0")
     }
 }
 

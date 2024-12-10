@@ -2,17 +2,17 @@
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
-    id("cn.loopon.cafe")
+    id("org.jetbrains.kotlin.plugin.compose")
+    id("io.github.kapaseker.cafe")
 }
 
 android {
     namespace = "com.azalea.cafe"
-    compileSdk = 34
+    compileSdk = 35
 
     defaultConfig {
         applicationId = "com.azalea.cafe"
         minSdk = 24
-        targetSdk = 34
         versionCode = 1
         versionName = "1.0"
 
@@ -29,17 +29,14 @@ android {
         }
     }
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_1_8
-        targetCompatibility = JavaVersion.VERSION_1_8
+        sourceCompatibility = JavaVersion.VERSION_21
+        targetCompatibility = JavaVersion.VERSION_21
     }
     kotlinOptions {
-        jvmTarget = "1.8"
+        jvmTarget = "21"
     }
     buildFeatures {
         compose = true
-    }
-    composeOptions {
-        kotlinCompilerExtensionVersion = "1.5.7"
     }
     packaging {
         resources {
