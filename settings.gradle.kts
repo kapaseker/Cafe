@@ -21,7 +21,7 @@ buildscript {
     }
     dependencies {
         classpath("com.android.tools.build:gradle:8.2.2")
-        classpath("io.github.kapaseker.cafe:cafe:1.0.1")
+        classpath("io.github.kapaseker.cafe:cafe:1.0.2")
         classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:2.1.0")
         classpath("org.jetbrains.kotlin.plugin.compose:org.jetbrains.kotlin.plugin.compose.gradle.plugin:2.1.0")
     }

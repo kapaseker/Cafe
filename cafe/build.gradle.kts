@@ -6,13 +6,13 @@ plugins {
     id("com.gradle.plugin-publish") version "1.3.0"
 }
 
-val cafe_id:String = "io.github.kapaseker.cafe"
-val cafe_group = "io.github.kapaseker"
-val cafe_artifact = "cafe"
-val cafe_version = "1.0.1"
+val cafeId:String = "io.github.kapaseker.cafe"
+val cafeGroup = "io.github.kapaseker"
+val cafeArtifact = "cafe"
+val cafeVersion = "1.0.2"
 
-group = cafe_id
-version = cafe_version
+group = cafeId
+version = cafeVersion
 
 dependencies {
     compileOnly(libs.gradle)
@@ -25,7 +25,7 @@ gradlePlugin {
     vcsUrl  = "https://github.com/kapaseker/Cafe.git"
     plugins {
         create("Cafe") {
-            id = cafe_id
+            id = cafeId
             displayName = "Adroid compose theme plugin"
             description = "A plugin that helps you change theme in android app developed by compose"
             tags = listOf("theme","compose","android")
@@ -37,9 +37,9 @@ gradlePlugin {
 publishing {
     publications {
         create<MavenPublication>("maven") {
-            groupId = cafe_group
-            artifactId = cafe_artifact
-            version = cafe_version
+            groupId = cafeGroup
+            artifactId = cafeArtifact
+            version = cafeVersion
 
             from(components["java"])
         }

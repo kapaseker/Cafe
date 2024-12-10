@@ -17,8 +17,8 @@ import groovy.xml.XmlParser
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.provider.SetProperty
-import org.gradle.configurationcache.extensions.capitalized
 import java.io.File
+import java.util.Locale
 
 private const val TASK_CAFE = "cafe"
 private const val EXTENSION = "cafe"
@@ -71,14 +71,14 @@ class CafePlugin : Plugin<Project> {
             target.androidProject()?.let { android ->
                 println("make app coffee for ${android.namespace}")
                 val cafeDir = android.sourceSets.getByName("main").java.srcDirs.first()
-                generateCafeFile(namespace = android.namespace.orEmpty(), variant = "", target = android, buildDir = target.buildDir, cups = cafeExtension.cup.get(), outDir = cafeDir)
+                generateCafeFile(namespace = android.namespace.orEmpty(), variant = "", target = android, buildDir = target.layout.buildDirectory.asFile.get(), cups = cafeExtension.cup.get(), outDir = cafeDir)
                 return@task
             }
 
             target.libraryProject()?.let { android ->
                 println("make library coffee for ${android.namespace}")
                 val cafeDir = android.sourceSets.getByName("main").java.srcDirs.first()
-                generateCafeFile(namespace = android.namespace.orEmpty(), variant = "", target = android, buildDir = target.buildDir, cups = cafeExtension.cup.get(), outDir = cafeDir)
+                generateCafeFile(namespace = android.namespace.orEmpty(), variant = "", target = android, buildDir = target.layout.buildDirectory.asFile.get(), cups = cafeExtension.cup.get(), outDir = cafeDir)
                 return@task
             }
         }
@@ -204,7 +204,7 @@ class CafePlugin : Plugin<Project> {
         for (type in coffees) {
             cafeProviderObj.addProperty(
                 PropertySpec.builder(
-                    name = type + PROVIDER, type = ClassName("androidx.compose.runtime", "ProvidableCompositionLocal").parameterizedBy(ClassName(namespace, CAFE + type.capitalized()))
+                    name = type + PROVIDER, type = ClassName("androidx.compose.runtime", "ProvidableCompositionLocal").parameterizedBy(cafeResourceClass(namespace, type))
                 ).initializer(
                     CodeBlock.builder().addStatement("staticCompositionLocalOf<%L> { error(\"null\") }", CAFE + type.capitalized()).build()
                 ).build()
@@ -224,7 +224,7 @@ class CafePlugin : Plugin<Project> {
 
         for (type in coffees) {
             cafeObj.addProperty(
-                PropertySpec.builder(type, ClassName(namespace, CAFE + type.capitalized())).getter(
+                PropertySpec.builder(type, cafeResourceClass(namespace, type)).getter(
                         FunSpec.getterBuilder().addAnnotation(composeAnnotation).addStatement("return $CAFE_PROVIDER.$type$PROVIDER.current").build()
                     ).build()
             )
@@ -289,7 +289,7 @@ class CafePlugin : Plugin<Project> {
     ): TypeSpec {
         val coffeeInterface = TypeSpec.interfaceBuilder(CUP).addModifiers(KModifier.PUBLIC)
         for (res in resNames) {
-            coffeeInterface.addProperty(res, ClassName(namespace, CAFE + res.capitalized()))
+            coffeeInterface.addProperty(res, cafeResourceClass(namespace, res))
         }
         return coffeeInterface.build()
     }
@@ -348,7 +348,7 @@ class CafePlugin : Plugin<Project> {
                 println("$resName has properties : $properties")
 
                 val property = PropertySpec.builder(
-                    resName, ClassName(namespace, CAFE + resName.capitalized()), KModifier.PUBLIC, KModifier.OVERRIDE
+                    resName, cafeResourceClass(namespace, resName), KModifier.PUBLIC, KModifier.OVERRIDE
                 ).initializer(
                         CodeBlock
                             .builder()
@@ -378,7 +378,11 @@ class CafePlugin : Plugin<Project> {
     }
 
     private fun processValuesFolder(
-        resName: String, folder: File, resSet: MutableSet<String>, resMap: MutableMap<String, MutableList<String>>, cups: Set<String>
+        resName: String,
+        folder: File,
+        resSet: MutableSet<String>,
+        resMap: MutableMap<String, MutableList<String>>,
+        cups: Set<String>
     ) {
         for (valueFile in folder.listFiles().orEmpty()) {
             val values = XmlParser().parse(valueFile)
@@ -398,7 +402,14 @@ class CafePlugin : Plugin<Project> {
         }
     }
 
-    private fun cupClass(pkg: String) = ClassName(pkg, CUP)
-    private fun coffeeClass(pkg: String) = ClassName(pkg, COFFEE)
-    private fun cafeClass(pkg:String) = ClassName(pkg, CAFE)
+
+    private fun makePackageName(pkg: String) = "$pkg.$EXTENSION"
+
+    private fun cupClass(pkg: String) = ClassName(makePackageName(pkg), CUP)
+    private fun coffeeClass(pkg: String) = ClassName(makePackageName(pkg), COFFEE)
+    private fun cafeClass(pkg:String) = ClassName(makePackageName(pkg), CAFE)
+
+    private fun cafeResourceClass(pkg:String, res:String) = ClassName(makePackageName(pkg), CAFE + res.capitalized())
+
+    private fun String.capitalized() = this.replaceFirstChar { if (it.isLowerCase()) it.titlecase(Locale.ROOT) else it.toString() }
 }
