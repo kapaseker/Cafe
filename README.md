@@ -1,3 +1,6 @@
+
+<img src="./logo.svg" width="400" height="400"/>
+
 # Cafe
 a plugin for android compose theme changing  
 
